@@ -514,7 +514,7 @@ const firebaseConfig = {
         actualizarPresupuesto(p.id, { persona: selPersona.value || null });
       });
 
-      txtNotas.addEventListener("input", () => {
+      txtNotas.addEventListener("blur", () => {
         actualizarPresupuesto(p.id, { notasPendiente: txtNotas.value });
       });
 
@@ -560,7 +560,7 @@ const firebaseConfig = {
       const txtNotasProceso = card.querySelector(".textarea-notas-proceso");
       txtNotasProceso.value = p.notasProceso || "";
 
-      txtNotasProceso.addEventListener("input", () => {
+      txtNotasProceso.addEventListener("blur", () => {
         actualizarPresupuesto(p.id, { notasProceso: txtNotasProceso.value });
       });
 
@@ -626,7 +626,7 @@ const firebaseConfig = {
         });
       });
 
-      txtNotasFinal.addEventListener("input", () => {
+      txtNotasFinal.addEventListener("blur", () => {
         actualizarPresupuesto(p.id, { notasFinalizado: txtNotasFinal.value });
       });
 
