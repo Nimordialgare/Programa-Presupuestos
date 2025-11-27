@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Control de Solicitudes de Presupuestos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 1rem;
+      background: #f4f5f7;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .app-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .stats {
+      font-size: 0.85rem;
+      color: #444;
+      background: #e3f2fd;
+      padding: 0.35rem 0.6rem;
+      border-radius: 999px;
+    }
+
+    .search-input {
+      flex: 1 1 220px;
+      padding: 0.45rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid #cfd8dc;
+      font-size: 0.9rem;
+    }
+
+    .add-form {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .add-form input[type="text"] {
+      flex: 1 1 250px;
+      padding: 0.5rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .btn {
+      border: none;
+      padding: 0.5rem 0.75rem;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: transform 0.05s ease, box-shadow 0.05s ease, opacity 0.1s;
+      background: #1976d2;
+      color: white;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.18);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: none;
+      opacity: 0.9;
+    }
+
+    .btn-secondary {
+      background: #607d8b;
+    }
+
+    .btn-danger {
+      background: #d32f2f;
+      border-radius: 8px;
+      padding: 0.35rem 0.5rem;
+    }
+
+    .columns {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    @media (max-width: 900px) {
+      .columns {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .column {
+      background: #ffffff;
+      padding: 0.75rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .column h2 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.1rem;
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 0.25rem;
+    }
+
+    .column-subtitle {
+      font-size: 0.8rem;
+      color: #777;
+      margin-bottom: 0.5rem;
+    }
+
+    .presupuesto-card {
+      border-radius: 10px;
+      padding: 0.6rem 0.7rem;
+      margin-bottom: 0.6rem;
+      border: 1px solid #e0e4ea;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      transition: transform 0.05s ease, box-shadow 0.05s ease;
+    }
+
+    .presupuesto-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.16);
+    }
+
+    .presupuesto-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      font-size: 0.75rem;
+    }
+
+    .badge {
+      border-radius: 999px;
+      padding: 0.15rem 0.6rem;
+      background: #e3f2fd;
+      color: #0d47a1;
+    }
+
+    .badge-muted {
+      background: #eceff1;
+      color: #455a64;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    label {
+      font-size: 0.75rem;
+      color: #555;
+    }
+
+    select, textarea, input[type="date"] {
+      border-radius: 8px;
+      border: 1px solid #cfd8dc;
+      padding: 0.35rem 0.4rem;
+      font-size: 0.85rem;
+      width: 100%;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 50px;
+      max-height: 150px;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.2rem;
+    }
+
+    .card-footer-right {
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+    }
+
+    .small-text {
+      font-size: 0.7rem;
+      color: #555;
+    }
+
+    .status-select {
+      max-width: 130px;
+    }
+
+    .empty-text {
+      font-size: 0.8rem;
+      color: #999;
+      margin-top: 0.5rem;
+    }
+
+    .inline-fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.4rem;
+    }
+
+    @media (max-width: 600px) {
+      .inline-fields {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .date-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <h1>Control de Solicitudes de Presupuestos</h1>
+
+    <div class="toolbar">
+      <div class="stats" id="statsResumen">
+        Pendientes: 0 · En proceso: 0 · Finalizados: 0 · Total: 0
+      </div>
+      <input
+        type="text"
+        id="buscadorTitulo"
+        class="search-input"
+        placeholder="Buscar por título..."
+      />
+    </div>
+
+    <div class="add-form">
+      <input
+        type="text"
+        id="nuevoTitulo"
+        placeholder="Título del presupuesto (ej: Reforma piso Calle Mayor)"
+      />
+      <button class="btn" id="btnAgregar">Añadir presupuesto</button>
+    </div>
+
+    <div class="columns">
+      <!-- PENDIENTES -->
+      <div class="column" id="colPendientes">
+        <h2>Presupuestos pendientes</h2>
+        <div class="column-subtitle">
+          Asigna tipo, responsable, fechas, notas y pásalo a “En Proceso”.
+        </div>
+        <div class="lista" id="listaPendientes"></div>
+      </div>
+
+      <!-- EN PROCESO -->
+      <div class="column" id="colProceso">
+        <h2>En Proceso</h2>
+        <div class="column-subtitle">
+          Estados ya fijados. Solo puedes añadir notas y marcar como finalizado.
+        </div>
+        <div class="lista" id="listaProceso"></div>
+      </div>
+
+      <!-- FINALIZADOS -->
+      <div class="column" id="colFinalizados">
+        <h2>Finalizados</h2>
+        <div class="column-subtitle">
+          Asigna si está en revisión o enviado, añade notas y elimina si ya no lo necesitas.
+        </div>
+        <div class="lista" id="listaFinalizados"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Modelo de datos ---
+    // presupuesto = {
+    //   id: number,
+    //   titulo: string,
+    //   empresa: "SL" | "Autonomo" | "NoInteresa" | null,
+    //   persona: "Ber" | "Ernesto" | "Victor" | "Bernardo" | null,
+    //   fechaEntrada: "YYYY-MM-DD" | null,
+    //   fechaLimite: "YYYY-MM-DD" | null,
+    //   notasPendiente: string,
+    //   notasProceso: string,
+    //   notasFinalizado: string,
+    //   estado: "pendiente" | "proceso" | "finalizado",
+    //   estadoEnvio: "revision" | "enviado" | null,
+    //   colorIndex: number | null,
+    //   creado: number (timestamp)
+    // }
+
+    const STORAGE_KEY = "gestor_presupuestos_v1";
+    const CARD_COLORS = [
+      { bg: "#fff3e0", border: "#ffb74d" },
+      { bg: "#e3f2fd", border: "#64b5f6" },
+      { bg: "#e8f5e9", border: "#81c784" },
+      { bg: "#f3e5f5", border: "#ba68c8" },
+      { bg: "#fce4ec", border: "#f06292" },
+      { bg: "#ede7f6", border: "#9575cd" }
+    ];
+
+    let presupuestos = [];
+    let filtroTitulo = "";
+
+    function cargarDesdeStorage() {
+      const data = localStorage.getItem(STORAGE_KEY);
+      if (data) {
+        try {
+          presupuestos = JSON.parse(data);
+        } catch (e) {
+          console.error("Error al leer storage", e);
+          presupuestos = [];
+        }
+      }
+    }
+
+    function guardarEnStorage() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(presupuestos));
+    }
+
+    function getNextColorIndex() {
+      if (!presupuestos.length) return 0;
+      return presupuestos.length % CARD_COLORS.length;
+    }
+
+    function crearPresupuesto(titulo) {
+      const nuevo = {
+        id: Date.now(),
+        titulo: titulo.trim(),
+        empresa: null,
+        persona: null,
+        fechaEntrada: null,
+        fechaLimite: null,
+        notasPendiente: "",
+        notasProceso: "",
+        notasFinalizado: "",
+        estado: "pendiente",
+        estadoEnvio: null,
+        colorIndex: getNextColorIndex(),
+        creado: Date.now()
+      };
+      presupuestos.push(nuevo);
+      guardarEnStorage();
+      render();
+    }
+
+    function actualizarPresupuesto(id, cambios) {
+      const idx = presupuestos.findIndex(p => p.id === id);
+      if (idx === -1) return;
+      presupuestos[idx] = { ...presupuestos[idx], ...cambios };
+      guardarEnStorage();
+      render();
+    }
+
+    function eliminarPresupuesto(id) {
+      presupuestos = presupuestos.filter(p => p.id !== id);
+      guardarEnStorage();
+      render();
+    }
+
+    // --- Renderizado ---
+    function render() {
+      const listaPendientes = document.getElementById("listaPendientes");
+      const listaProceso = document.getElementById("listaProceso");
+      const listaFinalizados = document.getElementById("listaFinalizados");
+      const statsResumen = document.getElementById("statsResumen");
+
+      listaPendientes.innerHTML = "";
+      listaProceso.innerHTML = "";
+      listaFinalizados.innerHTML = "";
+
+      const filtro = (filtroTitulo || "").trim().toLowerCase();
+
+      let pendientes = presupuestos.filter(p => p.estado === "pendiente");
+      let proceso = presupuestos.filter(p => p.estado === "proceso");
+      let finalizados = presupuestos.filter(p => p.estado === "finalizado");
+
+      if (filtro) {
+        pendientes = pendientes.filter(p =>
+          p.titulo.toLowerCase().includes(filtro)
+        );
+        proceso = proceso.filter(p =>
+          p.titulo.toLowerCase().includes(filtro)
+        );
+        finalizados = finalizados.filter(p =>
+          p.titulo.toLowerCase().includes(filtro)
+        );
+      }
+
+      const totalPend = pendientes.length;
+      const totalProc = proceso.length;
+      const totalFin = finalizados.length;
+      const total = totalPend + totalProc + totalFin;
+
+      statsResumen.textContent =
+        `Pendientes: ${totalPend} · En proceso: ${totalProc} · ` +
+        `Finalizados: ${totalFin} · Total: ${total}`;
+
+      if (pendientes.length === 0) {
+        listaPendientes.innerHTML = '<div class="empty-text">No hay presupuestos pendientes.</div>';
+      } else {
+        pendientes
+          .sort((a, b) => a.creado - b.creado)
+          .forEach(p => listaPendientes.appendChild(crearCardPendiente(p)));
+      }
+
+      if (proceso.length === 0) {
+        listaProceso.innerHTML = '<div class="empty-text">Nada en proceso por ahora.</div>';
+      } else {
+        proceso
+          .sort((a, b) => a.creado - b.creado)
+          .forEach(p => listaProceso.appendChild(crearCardProceso(p)));
+      }
+
+      if (finalizados.length === 0) {
+        listaFinalizados.innerHTML = '<div class="empty-text">Todavía no hay finalizados.</div>';
+      } else {
+        finalizados
+          .sort((a, b) => a.creado - b.creado)
+          .forEach(p => listaFinalizados.appendChild(crearCardFinalizado(p)));
+      }
+    }
+
+    function aplicarColorCard(card, p) {
+      const idx = typeof p.colorIndex === "number" ? p.colorIndex % CARD_COLORS.length : 0;
+      const c = CARD_COLORS[idx];
+      card.style.backgroundColor = c.bg;
+      card.style.borderColor = c.border;
+    }
+
+    function crearCardPendiente(p) {
+      const card = document.createElement("div");
+      card.className = "presupuesto-card";
+      card.dataset.id = p.id;
+
+      card.innerHTML = `
+        <div class="presupuesto-title">${escapeHtml(p.titulo)}</div>
+
+        <div class="inline-fields">
+          <div class="field-group">
+            <label>Fecha de entrada</label>
+            <input type="date" class="input-fecha-entrada" />
+          </div>
+          <div class="field-group">
+            <label>Fecha límite</label>
+            <input type="date" class="input-fecha-limite" />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>¿Para quién es?</label>
+          <select class="select-empresa">
+            <option value="">Sin asignar</option>
+            <option value="SL">S.L.</option>
+            <option value="Autonomo">Autónomo</option>
+            <option value="NoInteresa">No interesa</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label>Persona responsable</label>
+          <select class="select-persona">
+            <option value="">Sin asignar</option>
+            <option value="Ber">Ber</option>
+            <option value="Ernesto">Ernesto</option>
+            <option value="Victor">Victor</option>
+            <option value="Bernardo">Bernardo</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label>Notas</label>
+          <textarea class="textarea-notas-pendiente" placeholder="Añade notas rápidas..."></textarea>
+        </div>
+
+        <div class="card-footer">
+          <span class="small-text">Pendiente</span>
+          <button class="btn btn-secondary btn-aceptar">Aceptar y pasar a “En Proceso”</button>
+        </div>
+      `;
+
+      aplicarColorCard(card, p);
+
+      // Set valores actuales
+      const inputFechaEntrada = card.querySelector(".input-fecha-entrada");
+      const inputFechaLimite = card.querySelector(".input-fecha-limite");
+      inputFechaEntrada.value = p.fechaEntrada || "";
+      inputFechaLimite.value = p.fechaLimite || "";
+
+      const selEmpresa = card.querySelector(".select-empresa");
+      selEmpresa.value = p.empresa || "";
+
+      const selPersona = card.querySelector(".select-persona");
+      selPersona.value = p.persona || "";
+
+      const txtNotas = card.querySelector(".textarea-notas-pendiente");
+      txtNotas.value = p.notasPendiente || "";
+
+      // Listeners
+      inputFechaEntrada.addEventListener("change", () => {
+        actualizarPresupuesto(p.id, { fechaEntrada: inputFechaEntrada.value || null });
+      });
+
+      inputFechaLimite.addEventListener("change", () => {
+        actualizarPresupuesto(p.id, { fechaLimite: inputFechaLimite.value || null });
+      });
+
+      selEmpresa.addEventListener("change", () => {
+        actualizarPresupuesto(p.id, { empresa: selEmpresa.value || null });
+      });
+
+      selPersona.addEventListener("change", () => {
+        actualizarPresupuesto(p.id, { persona: selPersona.value || null });
+      });
+
+      txtNotas.addEventListener("input", () => {
+        actualizarPresupuesto(p.id, { notasPendiente: txtNotas.value });
+      });
+
+      const btnAceptar = card.querySelector(".btn-aceptar");
+      btnAceptar.addEventListener("click", () => {
+        actualizarPresupuesto(p.id, { estado: "proceso" });
+      });
+
+      return card;
+    }
+
+    function crearCardProceso(p) {
+      const card = document.createElement("div");
+      card.className = "presupuesto-card";
+      card.dataset.id = p.id;
+
+      card.innerHTML = `
+        <div class="presupuesto-title">${escapeHtml(p.titulo)}</div>
+
+        <div class="date-row">
+          <span class="small-text">Entrada: ${formatearFechaCorta(p.fechaEntrada)}</span>
+          <span class="small-text">Límite: ${formatearFechaCorta(p.fechaLimite)}</span>
+        </div>
+
+        <div class="badge-row">
+          <span class="badge">${textoEmpresa(p.empresa)}</span>
+          <span class="badge badge-muted">${textoPersona(p.persona)}</span>
+        </div>
+
+        <div class="field-group">
+          <label>Notas (en proceso)</label>
+          <textarea class="textarea-notas-proceso" placeholder="Notas sobre el trabajo del presupuesto..."></textarea>
+        </div>
+
+        <div class="card-footer">
+          <span class="small-text">En proceso</span>
+          <button class="btn btn-secondary btn-finalizar">Marcar como finalizado</button>
+        </div>
+      `;
+
+      aplicarColorCard(card, p);
+
+      const txtNotasProceso = card.querySelector(".textarea-notas-proceso");
+      txtNotasProceso.value = p.notasProceso || "";
+
+      txtNotasProceso.addEventListener("input", () => {
+        actualizarPresupuesto(p.id, { notasProceso: txtNotasProceso.value });
+      });
+
+      const btnFinalizar = card.querySelector(".btn-finalizar");
+      btnFinalizar.addEventListener("click", () => {
+        actualizarPresupuesto(p.id, { estado: "finalizado" });
+      });
+
+      return card;
+    }
+
+    function crearCardFinalizado(p) {
+      const card = document.createElement("div");
+      card.className = "presupuesto-card";
+      card.dataset.id = p.id;
+
+      card.innerHTML = `
+        <div class="presupuesto-title">${escapeHtml(p.titulo)}</div>
+
+        <div class="date-row">
+          <span class="small-text">Entrada: ${formatearFechaCorta(p.fechaEntrada)}</span>
+          <span class="small-text">Límite: ${formatearFechaCorta(p.fechaLimite)}</span>
+        </div>
+
+        <div class="badge-row">
+          <span class="badge">${textoEmpresa(p.empresa)}</span>
+          <span class="badge badge-muted">${textoPersona(p.persona)}</span>
+        </div>
+
+        <div class="field-group">
+          <label>Estado del envío</label>
+          <select class="status-select select-envio">
+            <option value="">Sin asignar</option>
+            <option value="revision">En revisión</option>
+            <option value="enviado">Enviado</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label>Notas (finalizado)</label>
+          <textarea class="textarea-notas-final" placeholder="Notas finales, feedback del cliente, etc."></textarea>
+        </div>
+
+        <div class="card-footer">
+          <span class="small-text">Finalizado</span>
+          <div class="card-footer-right">
+            <button class="btn-danger btn-eliminar" title="Eliminar presupuesto">🗑️</button>
+          </div>
+        </div>
+      `;
+
+      aplicarColorCard(card, p);
+
+      const selEnvio = card.querySelector(".select-envio");
+      selEnvio.value = p.estadoEnvio || "";
+
+      const txtNotasFinal = card.querySelector(".textarea-notas-final");
+      txtNotasFinal.value = p.notasFinalizado || "";
+
+      selEnvio.addEventListener("change", () => {
+        actualizarPresupuesto(p.id, {
+          estadoEnvio: selEnvio.value || null
+        });
+      });
+
+      txtNotasFinal.addEventListener("input", () => {
+        actualizarPresupuesto(p.id, { notasFinalizado: txtNotasFinal.value });
+      });
+
+      const btnEliminar = card.querySelector(".btn-eliminar");
+      btnEliminar.addEventListener("click", () => {
+        if (confirm("¿Seguro que quieres eliminar este presupuesto?")) {
+          eliminarPresupuesto(p.id);
+        }
+      });
+
+      return card;
+    }
+
+    // --- Helpers ---
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function textoEmpresa(valor) {
+      switch (valor) {
+        case "SL": return "S.L.";
+        case "Autonomo": return "Autónomo";
+        case "NoInteresa": return "No interesa";
+        default: return "Sin tipo";
+      }
+    }
+
+    function textoPersona(valor) {
+      if (!valor) return "Sin responsable";
+      return valor;
+    }
+
+    function formatearFechaCorta(valor) {
+      if (!valor) return "--";
+      const partes = valor.split("-");
+      if (partes.length !== 3) return valor;
+      const [y, m, d] = partes;
+      return `${d}/${m}/${y.slice(-2)}`;
+    }
+
+    // --- Inicialización ---
+    document.addEventListener("DOMContentLoaded", () => {
+      cargarDesdeStorage();
+      // Para presupuestos antiguos sin colorIndex
+      presupuestos = presupuestos.map((p, i) => ({
+        ...p,
+        colorIndex: typeof p.colorIndex === "number" ? p.colorIndex : (i % CARD_COLORS.length)
+      }));
+      guardarEnStorage();
+      render();
+
+      const inputTitulo = document.getElementById("nuevoTitulo");
+      const btnAgregar = document.getElementById("btnAgregar");
+      const buscador = document.getElementById("buscadorTitulo");
+
+      function intentarAgregar() {
+        const titulo = inputTitulo.value.trim();
+        if (!titulo) {
+          alert("Escribe un título para el presupuesto.");
+          return;
+        }
+        crearPresupuesto(titulo);
+        inputTitulo.value = "";
+        inputTitulo.focus();
+      }
+
+      btnAgregar.addEventListener("click", intentarAgregar);
+      inputTitulo.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          intentarAgregar();
+        }
+      });
+
+      buscador.addEventListener("input", () => {
+        filtroTitulo = buscador.value;
+        render();
+      });
+    });
+  </script>
+</body>
+</html>
