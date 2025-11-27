@@ -736,6 +736,15 @@
   </script>
 
   <!-- Registro del service worker para instalar como app -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("./service-worker.js")
+          .catch((err) => console.error("Error registrando service worker:", err));
+      });
+    }
+  </script>
   
 </body>
 </html>
